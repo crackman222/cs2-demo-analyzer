@@ -1,0 +1,6 @@
+demoparser2
+pandas
+
+# Optional, only needed if you have .rar demo archives to extract
+# (also needs 7-Zip or WinRAR/unrar available on PATH):
+# patool

@@ -1,0 +1,14 @@
+{
+  "addons": "",
+  "client_name": "SourceTV Demo",
+  "demo_version_name": "valve_demo_2",
+  "allow_clientside_entities": "true",
+  "demo_file_stamp": "PBDEMS2\u0000",
+  "fullpackets_version": "2",
+  "server_name": "BLAST.tv Premier CS2 Server",
+  "map_name": "de_nuke",
+  "demo_version_guid": "8e9d71ab-04a1-4c01-bb61-acfede27c046",
+  "patch_version": "14172",
+  "game_directory": "/home/steam/cs2/game/csgo",
+  "allow_clientside_particles": "true"
+}

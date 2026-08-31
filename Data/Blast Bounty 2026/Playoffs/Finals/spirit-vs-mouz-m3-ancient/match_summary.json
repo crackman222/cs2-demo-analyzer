@@ -1,0 +1,61 @@
+{
+  "match_id": "spirit-vs-mouz-m3-ancient",
+  "map": "de_ancient",
+  "teams": [
+    {
+      "clan_name": "MOUZ",
+      "roster": [
+        {
+          "id": "76561198063336407",
+          "name": "Spinx"
+        },
+        {
+          "id": "76561198193174134",
+          "name": "xertioN"
+        },
+        {
+          "id": "76561198310561479",
+          "name": "PR"
+        },
+        {
+          "id": "76561198355739212",
+          "name": "torzsi"
+        },
+        {
+          "id": "76561198998266210",
+          "name": "xelex"
+        }
+      ]
+    },
+    {
+      "clan_name": "Spirit",
+      "roster": [
+        {
+          "id": "76561198081484775",
+          "name": "sh1ro"
+        },
+        {
+          "id": "76561198386265483",
+          "name": "donk"
+        },
+        {
+          "id": "76561198872013168",
+          "name": "tN1R"
+        },
+        {
+          "id": "76561198995880877",
+          "name": "zont1x"
+        },
+        {
+          "id": "76561199063238565",
+          "name": "magixx"
+        }
+      ]
+    }
+  ],
+  "score": {
+    "Spirit": 13,
+    "MOUZ": 9
+  },
+  "rounds_played": 22
+}

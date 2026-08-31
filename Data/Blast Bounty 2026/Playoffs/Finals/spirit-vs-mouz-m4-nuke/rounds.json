@@ -1,0 +1,324 @@
+[
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 1,
+    "tick": 13868,
+    "winner": "T",
+    "winner_clan": "MOUZ",
+    "reason": "ct_killed",
+    "payload": {
+      "reason": "ct_killed",
+      "round": 1,
+      "tick": 13868,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 2,
+    "tick": 23315,
+    "winner": "T",
+    "winner_clan": "MOUZ",
+    "reason": "bomb_exploded",
+    "payload": {
+      "reason": "bomb_exploded",
+      "round": 2,
+      "tick": 23315,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 3,
+    "tick": 30193,
+    "winner": "CT",
+    "winner_clan": "Spirit",
+    "reason": "t_killed",
+    "payload": {
+      "reason": "t_killed",
+      "round": 3,
+      "tick": 30193,
+      "winner": "CT"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 4,
+    "tick": 40639,
+    "winner": "T",
+    "winner_clan": "MOUZ",
+    "reason": "bomb_exploded",
+    "payload": {
+      "reason": "bomb_exploded",
+      "round": 4,
+      "tick": 40639,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 5,
+    "tick": 52625,
+    "winner": "T",
+    "winner_clan": "MOUZ",
+    "reason": "bomb_exploded",
+    "payload": {
+      "reason": "bomb_exploded",
+      "round": 5,
+      "tick": 52625,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 6,
+    "tick": 61713,
+    "winner": "CT",
+    "winner_clan": "Spirit",
+    "reason": "time_ran_out",
+    "payload": {
+      "reason": "time_ran_out",
+      "round": 6,
+      "tick": 61713,
+      "winner": "CT"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 7,
+    "tick": 68376,
+    "winner": "T",
+    "winner_clan": "MOUZ",
+    "reason": "ct_killed",
+    "payload": {
+      "reason": "ct_killed",
+      "round": 7,
+      "tick": 68376,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 8,
+    "tick": 78276,
+    "winner": "CT",
+    "winner_clan": "Spirit",
+    "reason": "t_killed",
+    "payload": {
+      "reason": "t_killed",
+      "round": 8,
+      "tick": 78276,
+      "winner": "CT"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 9,
+    "tick": 85556,
+    "winner": "CT",
+    "winner_clan": "Spirit",
+    "reason": "t_killed",
+    "payload": {
+      "reason": "t_killed",
+      "round": 9,
+      "tick": 85556,
+      "winner": "CT"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 10,
+    "tick": 93088,
+    "winner": "T",
+    "winner_clan": "MOUZ",
+    "reason": "bomb_exploded",
+    "payload": {
+      "reason": "bomb_exploded",
+      "round": 10,
+      "tick": 93088,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 11,
+    "tick": 103508,
+    "winner": "T",
+    "winner_clan": "MOUZ",
+    "reason": "ct_killed",
+    "payload": {
+      "reason": "ct_killed",
+      "round": 11,
+      "tick": 103508,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 12,
+    "tick": 111094,
+    "winner": "CT",
+    "winner_clan": "Spirit",
+    "reason": "t_killed",
+    "payload": {
+      "reason": "t_killed",
+      "round": 12,
+      "tick": 111094,
+      "winner": "CT"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 13,
+    "tick": 128179,
+    "winner": "T",
+    "winner_clan": "Spirit",
+    "reason": "ct_killed",
+    "payload": {
+      "reason": "ct_killed",
+      "round": 13,
+      "tick": 128179,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 14,
+    "tick": 134025,
+    "winner": "T",
+    "winner_clan": "Spirit",
+    "reason": "ct_killed",
+    "payload": {
+      "reason": "ct_killed",
+      "round": 14,
+      "tick": 134025,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 15,
+    "tick": 143690,
+    "winner": "T",
+    "winner_clan": "Spirit",
+    "reason": "bomb_exploded",
+    "payload": {
+      "reason": "bomb_exploded",
+      "round": 15,
+      "tick": 143690,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 16,
+    "tick": 151849,
+    "winner": "CT",
+    "winner_clan": "MOUZ",
+    "reason": "t_killed",
+    "payload": {
+      "reason": "t_killed",
+      "round": 16,
+      "tick": 151849,
+      "winner": "CT"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 17,
+    "tick": 157437,
+    "winner": "CT",
+    "winner_clan": "MOUZ",
+    "reason": "t_killed",
+    "payload": {
+      "reason": "t_killed",
+      "round": 17,
+      "tick": 157437,
+      "winner": "CT"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 18,
+    "tick": 168576,
+    "winner": "T",
+    "winner_clan": "Spirit",
+    "reason": "bomb_exploded",
+    "payload": {
+      "reason": "bomb_exploded",
+      "round": 18,
+      "tick": 168576,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 19,
+    "tick": 178548,
+    "winner": "CT",
+    "winner_clan": "MOUZ",
+    "reason": "bomb_defused",
+    "payload": {
+      "reason": "bomb_defused",
+      "round": 19,
+      "tick": 178548,
+      "winner": "CT"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 20,
+    "tick": 191054,
+    "winner": "T",
+    "winner_clan": "Spirit",
+    "reason": "bomb_exploded",
+    "payload": {
+      "reason": "bomb_exploded",
+      "round": 20,
+      "tick": 191054,
+      "winner": "T"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 21,
+    "tick": 201947,
+    "winner": "CT",
+    "winner_clan": "MOUZ",
+    "reason": "t_killed",
+    "payload": {
+      "reason": "t_killed",
+      "round": 21,
+      "tick": 201947,
+      "winner": "CT"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 22,
+    "tick": 210455,
+    "winner": "CT",
+    "winner_clan": "MOUZ",
+    "reason": "t_killed",
+    "payload": {
+      "reason": "t_killed",
+      "round": 22,
+      "tick": 210455,
+      "winner": "CT"
+    }
+  },
+  {
+    "match_id": "spirit-vs-mouz-m4-nuke",
+    "round": 23,
+    "tick": 218106,
+    "winner": "CT",
+    "winner_clan": "MOUZ",
+    "reason": "t_killed",
+    "payload": {
+      "reason": "t_killed",
+      "round": 23,
+      "tick": 218106,
+      "winner": "CT"
+    }
+  }
+]
