@@ -50,12 +50,19 @@ thinks about it ("Spirit vs MOUZ" is *the match*; dust2/mirage/etc. are
 still one row per map, unchanged — see "Series grouping" below for how
 the two meanings coexist without a bigger rename.
 
-- **Library** (`/`) — top-level list, one row per **series**: both teams
-  and the maps-won tally (e.g. "MOUZ 3 - 1 Spirit"), tournament, league,
-  map count. `GET /api/series`. Click a row to open it.
-- **Series** — the maps played within one series: map name, per-map
-  score, round count. `GET /api/series/{id}`. Click a map to open its
-  analytics (the view below).
+- **Library** (`/`) — top-level list, one row per **series** — think "the
+  folder an HLTV zip unzips into," not a map: "MOUZ vs Spirit" at "Blast
+  Bounty 2026 Season 2 Finals" is one row, even though 4 maps were
+  decoded from it. Three columns only — **series** (both teams),
+  **tournament**, **score** (maps-won tally, e.g. "MOUZ 3 - Spirit 1") —
+  deliberately its own, smaller column set than Discover's; a decoded
+  match doesn't need Discover's date/id/league, and the maps are one
+  click away regardless. `GET /api/series`. Click a row to expand it in
+  place — a native `<details>`/`<summary>` accordion, not a separate page
+  — showing that series' maps (map name, per-map score, round count;
+  lazy-loaded via `GET /api/series/{id}` on first expand, cached after
+  that) directly beneath it. Opening one row closes any other open row.
+  Click a map inside it to open its analytics (the view below).
 - **Discover** — type a team name and pick from an autocomplete dropdown
   (`GET /api/discover/teams`, proxying to n8n's "PandaScore Team Search"
   webhook) — team names collide often enough (e.g. "Spirit" matches both
@@ -65,8 +72,9 @@ the two meanings coexist without a bigger rename.
   `GET /api/discover`, proxying to n8n's "PandaScore Match Discovery"
   webhook, filtered by that team ID, then cross-referenced against local
   `matches.pandascore_match_id` — a result already decoded shows
-  **available** and is clickable straight into its Series view instead of
-  the **queue** button (see "Series grouping" below). Results are just
+  **available** and is clickable straight to Library with that series'
+  row expanded, instead of the **queue** button (see "Series grouping"
+  below). Results are just
   PandaScore candidates otherwise — nothing here touches HLTV or triggers
   the pipeline; fetching the actual demo is still a manual step, same as
   always. If n8n isn't reachable or a workflow isn't active, this shows
@@ -123,9 +131,18 @@ separate series-of-one, correct per-map winners), queued a test entry and
 reloaded with `--overwrite` (all 4 correctly merged into one series,
 "MOUZ 3 - Spirit 1", tournament/league/date populated), and confirmed
 Discover's `available` flag correctly flips true only for the queued
-match's own PandaScore id. Reverted the test linkage afterward — the 4
-real matches are unlinked again pending an actual Discover search
-against real PandaScore data. `GET /api/pending` lists anything queued
+match's own PandaScore id. Reverted the test linkage afterward.
+
+The 4 real matches are genuinely linked now, not just test-verified: they
+really are one HLTV download
+(`blast-bounty-2026-season-2-finals-spirit-vs-mouz-bo5--wn1awkp4iFRmswi58ug57`),
+so `parse_hltv_filename`/`try_auto_link` were run directly (same
+production code the Upload endpoint calls, just invoked without an actual
+`.rar` upload, since that file can't extract without 7-Zip — see "Upload
+→ pipeline" below) to queue that real filename and link all 4 maps to it.
+Library now shows one row, "MOUZ vs Spirit" / "Blast Bounty 2026 Season 2
+Finals" / "MOUZ 3 - Spirit 1", 4 maps in the accordion — confirmed live
+in a browser, not just via the API. `GET /api/pending` lists anything queued
 that hasn't matched a decoded match yet — no dedicated view for it yet,
 just the raw endpoint.
 

@@ -85,14 +85,33 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .pill.active { border-color: var(--accent); color: var(--accent); cursor: pointer; }
 
 /* ---- library ---- */
-#view-library .list-header, #view-library .series-row {
-  display: grid; grid-template-columns: 1fr 200px 130px 130px 70px;
-  padding: 9px 16px; gap: 14px;
+/* Own column set, deliberately smaller than Discover's — a row here is a
+   decoded *match* (series/tournament/final score; the maps are one click
+   away in the accordion), not a raw search result. Grid goes on
+   .series-summary (the <summary>, whose direct children are the cells)
+   not .series-row (the <details> itself, which only ever has two direct
+   children: the summary and the maps panel). */
+#view-library .list-header, .series-summary {
+  display: grid; grid-template-columns: 1fr 260px 200px 40px;
+  padding: 9px 16px; gap: 14px; align-items: center;
 }
-#view-series .list-header, #view-series .map-row {
-  display: grid; grid-template-columns: 1fr 130px 90px;
-  padding: 9px 16px; gap: 14px;
+.series-row .expand-indicator { text-align: right; color: var(--dim); }
+/* Expand state is native <details open> — app.js never sets a class for
+   it, just flips the indicator glyph itself; this targets that state
+   directly rather than duplicating it as a class. */
+.series-row[open] .expand-indicator { color: var(--accent); }
+
+/* Maps-in-series accordion panel, inserted directly under an expanded
+   series row rather than navigating to a separate page. */
+.series-maps { background: var(--border-soft); }
+.map-row {
+  display: grid; grid-template-columns: 40px 1fr 130px 90px;
+  padding: 8px 16px 8px 32px; gap: 14px; align-items: center;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
 }
+.map-row:last-child { border-bottom: none; }
+.map-row:hover { background: var(--border); }
 
 /* ---- discover ---- */
 #view-discover .list-header, .discover-row {

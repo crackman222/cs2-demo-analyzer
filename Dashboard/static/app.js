@@ -24,21 +24,30 @@ async function api(path) {
 function setStatus(text) { $('#status').textContent = text; }
 
 function showView(name) {
-  for (const v of ['library', 'discover', 'upload', 'series', 'match', 'rounds']) {
+  for (const v of ['library', 'discover', 'upload', 'match', 'rounds']) {
     $(`#view-${v}`).hidden = v !== name;
   }
-  const depth = { library: 0, discover: 0, upload: 0, series: 1, match: 2, rounds: 3 }[name];
+  // No separate "series" page anymore — a series's maps show inline
+  // (accordion) in the Library row itself. crumb-series/crumb-match
+  // appear together once you're on a map's analytics (Match/Rounds);
+  // crumb-round only once you're further into a specific round.
+  const depth = { library: 0, discover: 0, upload: 0, match: 1, rounds: 2 }[name];
   $('#crumb-sep-0').hidden = depth < 1;
   $('#crumb-series').hidden = depth < 1;
-  $('#crumb-sep-1').hidden = depth < 2;
-  $('#crumb-match').hidden = depth < 2;
-  $('#crumb-sep-2').hidden = depth < 3;
-  $('#crumb-round').hidden = depth < 3;
+  $('#crumb-sep-1').hidden = depth < 1;
+  $('#crumb-match').hidden = depth < 1;
+  $('#crumb-sep-2').hidden = depth < 2;
+  $('#crumb-round').hidden = depth < 2;
 }
 
 // ---------------------------------------------------------------------------
 // Library — top-level series list (what a user calls "matches"; each
-// groups the maps played in one BO1/BO3/BO5).
+// groups the maps played in one BO1/BO3/BO5 — e.g. one HLTV zip's worth).
+// Own column set (series/tournament/score), not Discover's — see
+// buildSeriesRow() below. Clicking a row expands it in place — a native
+// <details>/<summary> accordion, maps lazy-loaded from
+// /api/series/{id} on first open — rather than navigating to a
+// separate page; only one row stays expanded at a time.
 // ---------------------------------------------------------------------------
 
 async function loadLibrary() {
@@ -51,50 +60,84 @@ async function loadLibrary() {
     list.appendChild(el('div', 'empty', 'No decoded matches yet — run DuckDBLoader/load_matches.py, or use Upload.'));
   }
   for (const s of series) {
-    const row = el('div', 'row series-row');
-    row.append(
-      el('span', null, s.teams.map(t => t.clan_name).join(' vs ') || s.series_id),
-      el('span', 'dim', s.tournament || ''),
-      el('span', 'dim', s.league || ''),
-      el('span', 'right bold accent', s.teams.map(t => `${t.clan_name} ${t.maps_won}`).join(' - ')),
-      el('span', 'right dim', String(s.maps_played)),
-    );
-    row.addEventListener('click', () => openSeries(s.series_id));
-    list.appendChild(row);
+    list.appendChild(buildSeriesRow(s));
   }
   setStatus(`${series.length} series`);
 }
 
-// ---------------------------------------------------------------------------
-// Series — maps played within one series.
-// ---------------------------------------------------------------------------
+function buildSeriesRow(s) {
+  const details = document.createElement('details');
+  details.className = 'series-row';
+  details.dataset.seriesId = s.series_id;
 
-async function openSeries(seriesId) {
-  showView('series');
-  setStatus('loading...');
-  const data = await api(`/api/series/${encodeURIComponent(seriesId)}`);
-  state.seriesId = seriesId;
-  state.seriesLabel = data.matches[0]?.teams
-    ? [...data.matches[0].teams].map(t => t.clan_name).join(' vs ')
-    : seriesId;
+  const summary = document.createElement('summary');
+  // Grid layout has to live on the <summary> itself, not on the <details>
+  // (.series-row) — the cell spans are summary's direct children, and
+  // <details> has only two children (summary + the maps panel), so a grid
+  // on .series-row would never actually apply to them.
+  summary.className = 'row series-summary';
+  // Row = a match (a whole series — "MOUZ vs Spirit" at "Blast Bounty
+  // 2026 Season 2 Finals"), not a map: series/tournament/final score is
+  // everything worth showing at this level — the maps themselves are one
+  // click away. No date/id/league here (that's Discover's job, not a
+  // decoded match's).
+  summary.append(
+    el('span', null, s.teams.map(t => t.clan_name).join(' vs ') || s.series_id),
+    el('span', 'mid', s.tournament || ''),
+    el('span', 'right bold accent', s.teams.map(t => `${t.clan_name} ${t.maps_won}`).join(' - ')),
+    el('span', 'expand-indicator', '▸'),
+  );
+  details.appendChild(summary);
 
-  $('#crumb-series').textContent = state.seriesLabel;
-  $('#series-prompt').textContent = `ls maps/ --series ${seriesId}`;
+  const mapsBox = el('div', 'series-maps');
+  details.appendChild(mapsBox);
 
-  const list = $('#series-list');
-  list.innerHTML = '';
-  for (const m of data.matches) {
-    const teams = [...m.teams].sort((a, b) => b.score - a.score);
-    const row = el('div', 'row map-row');
-    row.append(
-      el('span', null, m.map || m.match_id),
-      el('span', 'right bold accent', teams.map(t => `${t.clan_name} ${t.score}`).join(' - ')),
-      el('span', 'right dim', String(m.rounds_played ?? '')),
-    );
-    row.addEventListener('click', () => openMatch(m.match_id));
-    list.appendChild(row);
-  }
-  setStatus(`${data.matches.length} map(s)`);
+  details.addEventListener('toggle', async () => {
+    summary.querySelector('.expand-indicator').textContent = details.open ? '▾' : '▸';
+    if (!details.open) return;
+
+    // Accordion: collapse any other expanded series row.
+    for (const other of document.querySelectorAll('details.series-row[open]')) {
+      if (other !== details) other.open = false;
+    }
+
+    if (details.dataset.loaded) return;
+    details.dataset.loaded = '1';
+    mapsBox.appendChild(el('div', 'empty', 'loading maps...'));
+    const data = await api(`/api/series/${encodeURIComponent(s.series_id)}`);
+    mapsBox.innerHTML = '';
+    for (const m of data.matches) {
+      const teams = [...m.teams].sort((a, b) => b.score - a.score);
+      const row = el('div', 'map-row');
+      row.append(
+        // "→" not "▸" here on purpose — this row navigates straight to
+        // the map's analytics on click, it doesn't expand further, so it
+        // shouldn't reuse the series row's "expandable" glyph.
+        el('span', 'dim', '→'),
+        el('span', null, m.map || m.match_id),
+        el('span', 'right bold accent', teams.map(t => `${t.clan_name} ${t.score}`).join(' - ')),
+        el('span', 'right dim', String(m.rounds_played ?? '')),
+      );
+      row.addEventListener('click', () => {
+        state.seriesId = s.series_id;
+        state.seriesLabel = s.teams.map(t => t.clan_name).join(' vs ') || s.series_id;
+        openMatch(m.match_id);
+      });
+      mapsBox.appendChild(row);
+    }
+  });
+
+  return details;
+}
+
+// Reached from Discover's "available" results — jump to Library and
+// expand the matching series row instead of a separate series page.
+async function goToSeriesInLibrary(seriesId) {
+  await loadLibrary();
+  const details = document.querySelector(`details.series-row[data-series-id="${CSS.escape(seriesId)}"]`);
+  if (!details) return;
+  details.open = true; // fires the toggle listener above (lazy loads + accordion)
+  details.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // ---------------------------------------------------------------------------
@@ -193,16 +236,16 @@ async function runDiscover(evt) {
       let actionBtn;
       if (m.available) {
         // Already decoded locally (matches.pandascore_match_id links back
-        // to this PandaScore id) — jump straight into the Series view
-        // instead of offering to queue something already there.
+        // to this PandaScore id) — jump to Library with that series
+        // expanded instead of offering to queue something already there.
         actionBtn = el('button', 'pill active', 'open →');
         actionBtn.type = 'button';
         actionBtn.style.cursor = 'pointer';
         actionBtn.addEventListener('click', (evt) => {
           evt.stopPropagation();
-          openSeries(String(m.match_id));
+          goToSeriesInLibrary(String(m.match_id));
         });
-        row.addEventListener('click', () => openSeries(String(m.match_id)));
+        row.addEventListener('click', () => goToSeriesInLibrary(String(m.match_id)));
       } else {
         actionBtn = el('button', 'pill', 'queue');
         actionBtn.type = 'button';
@@ -405,6 +448,7 @@ async function openMatch(matchId) {
   const data = await api(`/api/matches/${matchId}`);
   state.match = data;
 
+  $('#crumb-series').textContent = state.seriesLabel || '';
   $('#crumb-match').textContent = data.match.map || matchId;
 
   const teams = [...data.teams].sort((a, b) => b.score - a.score);
@@ -564,7 +608,8 @@ async function openRounds(matchId, round) {
 document.querySelectorAll('[data-nav="library"]').forEach(e => e.addEventListener('click', loadLibrary));
 document.querySelectorAll('[data-nav="discover"]').forEach(e => e.addEventListener('click', showDiscover));
 document.querySelectorAll('[data-nav="upload"]').forEach(e => e.addEventListener('click', showUpload));
-document.querySelectorAll('[data-nav="series"]').forEach(e => e.addEventListener('click', () => openSeries(state.seriesId)));
+// crumb-series has data-nav="library" (below), not its own listener —
+// there's no separate series page anymore to navigate back to.
 document.querySelectorAll('[data-nav="match"]').forEach(e => e.addEventListener('click', () => openMatch(state.matchId)));
 $('#discover-form').addEventListener('submit', runDiscover);
 $('#d-team').addEventListener('input', onTeamInput);
