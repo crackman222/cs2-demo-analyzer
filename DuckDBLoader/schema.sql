@@ -13,6 +13,10 @@
 --   team_metrics, player_metrics  (Stage 5 — initial insights)
 --   insights       (Stages 5-6 — insight engine, event detection)
 --   predictions    (Stage 9 — prediction layer)
+--
+-- Populated by Dashboard/app.py's Discover "queue" action + auto-linked
+-- by DuckDBLoader/load_matches.py on load:
+--   pending_downloads, matches.{pandascore_match_id,tournament,league,event_date}
 
 CREATE TABLE IF NOT EXISTS matches (
     match_id VARCHAR PRIMARY KEY,
@@ -20,6 +24,38 @@ CREATE TABLE IF NOT EXISTS matches (
     rounds_played INTEGER,
     loaded_at TIMESTAMP DEFAULT now()
 );
+
+-- Additive — preserves existing rows. tournament/league/event_date come
+-- from PandaScore (via pending_downloads below), not the demo itself;
+-- demos carry no real-world date or event metadata at all.
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS pandascore_match_id VARCHAR;
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS tournament VARCHAR;
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS league VARCHAR;
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS event_date VARCHAR;
+
+-- One row per pending series (a whole BO3/BO5) the user intends to
+-- decode, from either source: a PandaScore match queued from the
+-- Discover view (source='pandascore', pandascore_match_id is PandaScore's
+-- own numeric id), or a "team-vs-team" hint parsed from an uploaded
+-- demo zip's filename (source='hltv_filename', pandascore_match_id holds
+-- a synthetic "hltv:<slug>" id instead — no real PandaScore id involved).
+-- Deliberately no "consumed"/"linked" flag: a series can back several
+-- `matches` rows (one per map), so many matches.pandascore_match_id
+-- values can point at the same pending_downloads row — "is this
+-- fulfilled" is a query (see DuckDBLoader/load_matches.py's
+-- try_auto_link), not a stored flag that only the first linked map would
+-- ever get to set.
+CREATE TABLE IF NOT EXISTS pending_downloads (
+    pandascore_match_id VARCHAR PRIMARY KEY,
+    team_a VARCHAR,
+    team_b VARCHAR,
+    event_date VARCHAR,
+    tournament VARCHAR,
+    league VARCHAR,
+    source VARCHAR DEFAULT 'pandascore',
+    queued_at TIMESTAMP DEFAULT now()
+);
+ALTER TABLE pending_downloads ADD COLUMN IF NOT EXISTS source VARCHAR DEFAULT 'pandascore';
 
 CREATE TABLE IF NOT EXISTS teams (
     match_id VARCHAR REFERENCES matches(match_id),

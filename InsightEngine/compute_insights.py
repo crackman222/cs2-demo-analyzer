@@ -33,6 +33,7 @@ from pathlib import Path
 import duckdb
 
 SCHEMA_PATH = Path(__file__).parent.parent / "DuckDBLoader" / "schema.sql"
+DB_DEFAULT = Path(__file__).parent.parent / "DuckDBLoader" / "cs2_matches.duckdb"
 
 MOMENTUM_WINDOW = 5          # trailing rounds considered for momentum
 LOSS_STREAK_THRESHOLD = 2    # consecutive round losses before flagging economic pressure
@@ -268,7 +269,7 @@ def process_match(con: duckdb.DuckDBPyConnection, match_id: str):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
-    parser.add_argument("--db", type=Path, default=Path("cs2_matches.duckdb"), help="DuckDB database file (default: ./cs2_matches.duckdb)")
+    parser.add_argument("--db", type=Path, default=DB_DEFAULT, help=f"DuckDB database file (default: {DB_DEFAULT})")
     parser.add_argument("--match-id", help="Compute insights for only this match (default: every match without insights yet)")
     parser.add_argument("--overwrite", action="store_true", help="Recompute matches that already have insights")
     args = parser.parse_args()

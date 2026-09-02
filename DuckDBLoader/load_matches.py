@@ -24,9 +24,19 @@ from pathlib import Path
 import duckdb
 
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
+DB_DEFAULT = Path(__file__).parent / "cs2_matches.duckdb"
 
-# Tables touched by this loader, children first (for --overwrite deletes).
+# Every table with a FK on matches(match_id) — children first, matches
+# last — so --overwrite's delete-then-reinsert doesn't hit a foreign key
+# violation. This loader only populates the first six; the rest
+# (match_states/team_metrics/player_metrics/insights/predictions) belong
+# to later stages, but still reference matches and so still have to be
+# cleared before matches itself can be deleted. --overwrite therefore
+# clears those stages' data too — re-run StateReconstructor/InsightEngine/
+# EventDetector afterward if you want it back (this loader can't
+# regenerate it itself, it doesn't have that logic).
 LOADED_TABLES = [
+    "predictions", "insights", "player_metrics", "team_metrics", "match_states",
     "player_round_stats", "rounds", "raw_events", "players", "teams", "matches",
 ]
 
@@ -54,6 +64,48 @@ def delete_match(con: duckdb.DuckDBPyConnection, match_id: str):
         con.execute(f"DELETE FROM {table} WHERE match_id = ?", [match_id])
 
 
+def normalize_name(name: str) -> str:
+    return "".join(ch for ch in (name or "").lower() if ch.isalnum())
+
+
+def names_match(a: str, b: str) -> bool:
+    """Loose enough to match "Spirit" against "Team Spirit" (same
+    tolerance the Dashboard's team autocomplete already assumes about
+    name variants between sources), strict enough that an empty name
+    never matches anything."""
+    na, nb = normalize_name(a), normalize_name(b)
+    return bool(na) and bool(nb) and (na in nb or nb in na)
+
+
+def try_auto_link(con: duckdb.DuckDBPyConnection, match_id: str, clan_names: list[str]):
+    """A queued PandaScore match (Dashboard's Discover 'queue' action) is
+    a whole series; this match is one map of it. Link only when exactly
+    one pending_downloads entry's two team names unambiguously match this
+    match's two clans — no guessing when zero or multiple candidates fit.
+    Deliberately no "consumed" marker: several maps from the same series
+    are expected to link to the same pending entry."""
+    if len(clan_names) != 2:
+        return
+    clan_a, clan_b = clan_names
+    pending = con.execute("SELECT pandascore_match_id, team_a, team_b, event_date, tournament, league FROM pending_downloads").fetchall()
+
+    candidates = [
+        row for row in pending
+        if (names_match(clan_a, row[1]) and names_match(clan_b, row[2]))
+        or (names_match(clan_a, row[2]) and names_match(clan_b, row[1]))
+    ]
+
+    if len(candidates) == 1:
+        pandascore_id, _, _, event_date, tournament, league = candidates[0]
+        con.execute(
+            "UPDATE matches SET pandascore_match_id = ?, event_date = ?, tournament = ?, league = ? WHERE match_id = ?",
+            [pandascore_id, event_date, tournament, league, match_id],
+        )
+        print(f"  Linked to pending download {pandascore_id} ({tournament})")
+    elif len(candidates) > 1:
+        print(f"  Note: {len(candidates)} ambiguous pending-download matches for {match_id} — not auto-linking")
+
+
 def load_match(con: duckdb.DuckDBPyConnection, match_dir: Path, summary: dict):
     match_id = summary["match_id"]
 
@@ -62,8 +114,10 @@ def load_match(con: duckdb.DuckDBPyConnection, match_dir: Path, summary: dict):
         [match_id, summary.get("map"), summary.get("rounds_played")],
     )
 
+    clan_names = []
     for team in summary.get("teams", []):
         clan_name = team.get("clan_name")
+        clan_names.append(clan_name)
         con.execute(
             "INSERT INTO teams (match_id, clan_name, score) VALUES (?, ?, ?)",
             [match_id, clan_name, summary.get("score", {}).get(clan_name)],
@@ -104,11 +158,13 @@ def load_match(con: duckdb.DuckDBPyConnection, match_dir: Path, summary: dict):
             FROM read_ndjson_auto({sql_path(events_path)})
         """)
 
+    try_auto_link(con, match_id, clan_names)
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     parser.add_argument("decoded_root", type=Path, help="Root directory to search for decoded match folders")
-    parser.add_argument("--db", type=Path, default=Path("cs2_matches.duckdb"), help="DuckDB database file (default: ./cs2_matches.duckdb)")
+    parser.add_argument("--db", type=Path, default=DB_DEFAULT, help=f"DuckDB database file (default: {DB_DEFAULT})")
     parser.add_argument("--overwrite", action="store_true", help="Reload matches that are already in the database")
     args = parser.parse_args()
 
@@ -133,6 +189,11 @@ def main():
             if not args.overwrite:
                 print(f"Skipping {match_id}: already loaded (use --overwrite to reload)")
                 continue
+            downstream = [t for t in ("match_states", "team_metrics", "player_metrics", "insights")
+                          if con.execute(f"SELECT 1 FROM {t} WHERE match_id = ? LIMIT 1", [match_id]).fetchone()]
+            if downstream:
+                print(f"  Note: also clearing {match_id}'s data in {', '.join(downstream)} — "
+                      f"re-run those stages afterward if you want it recomputed")
             delete_match(con, match_id)
 
         load_match(con, match_dir, summary)

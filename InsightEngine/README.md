@@ -18,6 +18,9 @@ pip install -r requirements.txt
 python compute_insights.py [--db PATH] [--match-id ID] [--overwrite]
 ```
 
+`--db` defaults to `DuckDBLoader/cs2_matches.duckdb` next to this
+script's own repo location — works from any working directory.
+
 Requires `DuckDBLoader/load_matches.py` and
 `StateReconstructor/reconstruct_state.py` to have already run for a
 match — this reads `rounds`/`player_round_stats`/`raw_events`/`teams`,

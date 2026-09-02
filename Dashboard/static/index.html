@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>cs2-match-tracker</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <span class="brand" data-nav="library">cs2-match-tracker</span>
+      <span class="crumb link" data-nav="discover" style="padding-right:20px">discover</span>
+      <span class="crumb link" data-nav="upload" style="padding-right:20px">upload</span>
+      <span class="crumb" id="crumb-sep-0" hidden>/</span>
+      <span class="crumb link" id="crumb-series" data-nav="series" hidden></span>
+      <span class="crumb" id="crumb-sep-1" hidden>/</span>
+      <span class="crumb link" id="crumb-match" data-nav="match" hidden></span>
+      <span class="crumb" id="crumb-sep-2" hidden>/</span>
+      <span class="crumb current" id="crumb-round" hidden></span>
+      <span class="status" id="status"></span>
+    </div>
+
+    <main>
+      <!-- LIBRARY (series list — "matches" in the UI, groups per-map rows) -->
+      <div id="view-library">
+        <div class="prompt panel">watch Data/ --auto-decode</div>
+        <div class="list-header row header">
+          <span>teams</span><span>tournament</span><span>league</span><span class="right">score</span><span class="right">maps</span>
+        </div>
+        <div id="library-list"></div>
+      </div>
+
+      <!-- SERIES (maps within one series) -->
+      <div id="view-series" hidden>
+        <div class="prompt panel" id="series-prompt"></div>
+        <div class="list-header row header">
+          <span>map</span><span class="right">score</span><span class="right">rounds</span>
+        </div>
+        <div id="series-list"></div>
+      </div>
+
+      <!-- DISCOVER -->
+      <div id="view-discover" hidden>
+        <div class="prompt panel">query pandascore --team --status --range</div>
+        <form id="discover-form" class="panel panel-border-b" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap">
+          <label class="field" style="position:relative">
+            <span class="dim">team</span>
+            <input type="text" id="d-team" placeholder="Spirit" autocomplete="off">
+            <input type="hidden" id="d-team-id">
+            <div id="d-team-suggestions" class="suggestions" hidden></div>
+          </label>
+          <label class="field">
+            <span class="dim">status</span>
+            <select id="d-status">
+              <option value="finished" selected>finished</option>
+              <option value="running">running</option>
+              <option value="not_started">not_started</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="dim">from</span>
+            <input type="date" id="d-from">
+          </label>
+          <label class="field">
+            <span class="dim">to</span>
+            <input type="date" id="d-to">
+          </label>
+          <button type="submit" class="pill active" style="cursor:pointer">search</button>
+        </form>
+        <div class="list-header row header">
+          <span>date</span><span>match id</span><span>teams</span><span>tournament</span><span>league</span><span class="right">score</span><span></span>
+        </div>
+        <div id="discover-list"></div>
+      </div>
+
+      <!-- UPLOAD -->
+      <div id="view-upload" hidden>
+        <div class="prompt panel">upload --dem-or-zip-or-rar --then-decode</div>
+        <form id="upload-form" class="panel panel-border-b" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+          <input type="file" id="u-file" accept=".dem,.zip,.rar" required>
+          <button type="submit" class="pill active" style="cursor:pointer">upload &amp; decode</button>
+        </form>
+        <div class="panel dim" style="font-size:11.5px; line-height:1.6">
+          Uploads, then runs the full pipeline (decode → load → state →
+          insights → events) on this file — the upload itself shows
+          progress below, but once it reaches the server there's no
+          progress bar for the pipeline stages, just a wait; can take a
+          while for a large multi-map archive. If the filename matches
+          HLTV's zip-naming pattern (team-vs-team, e.g.
+          <span class="mid">...-spirit-vs-mouz-bo5--...</span>), the
+          parsed teams/tournament get queued automatically so they land
+          on the decoded match once loaded. <span class="mid">.rar</span>
+          needs 7-Zip or WinRAR/unrar on this machine (Windows has no
+          built-in RAR support) — <span class="mid">.zip</span> always
+          works, no extra tool needed.
+        </div>
+        <div id="upload-progress" class="panel" hidden>
+          <div class="bar-track" style="height:14px">
+            <div class="bar-fill" id="upload-progress-fill" style="width:0%"></div>
+          </div>
+          <div class="dim" id="upload-progress-label" style="margin-top:6px; font-size:11px"></div>
+        </div>
+        <div id="upload-result" class="panel"></div>
+      </div>
+
+      <!-- MATCH -->
+      <div id="view-match" hidden>
+        <div class="match-head panel panel-border-b">
+          <div class="prompt" id="match-prompt"></div>
+          <div class="match-title-row">
+            <span class="match-map" id="match-map"></span>
+            <span class="match-score" id="match-score"></span>
+          </div>
+        </div>
+
+        <div class="panel panel-border-b">
+          <div class="section-label">rounds/ — click to open breakdown</div>
+          <div class="round-strip" id="round-strip"></div>
+        </div>
+
+        <div style="flex:1; display:grid; grid-template-columns:1fr 330px; min-height:0;">
+          <div class="panel panel-border-r scroll">
+            <div class="section-label" id="scoreboard-label-1"></div>
+            <div id="scoreboard-1"></div>
+            <div class="section-label" style="margin-top:16px" id="scoreboard-label-2"></div>
+            <div id="scoreboard-2"></div>
+          </div>
+          <div class="panel scroll">
+            <div class="section-label">momentum/</div>
+            <div class="sparkline" id="momentum-chart"></div>
+            <div class="section-label" style="margin-top:16px">flags/</div>
+            <div id="match-flags"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROUNDS -->
+      <div id="view-rounds" hidden style="flex:1; display:grid; grid-template-columns:200px 1fr 280px; min-height:0;">
+        <div class="panel-border-r scroll">
+          <div class="section-label panel" style="padding-bottom:0">rounds/</div>
+          <div id="round-list"></div>
+        </div>
+        <div class="panel-border-r scroll">
+          <div class="panel panel-border-b" id="round-head"></div>
+          <div class="panel">
+            <div class="section-label">killfeed/</div>
+            <div id="killfeed"></div>
+          </div>
+        </div>
+        <div class="panel scroll">
+          <div class="section-label">economy/</div>
+          <div id="round-economy"></div>
+          <div class="section-label" style="margin-top:16px">flags/</div>
+          <div id="round-flags"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

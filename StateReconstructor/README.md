@@ -18,8 +18,9 @@ pip install -r requirements.txt
 python reconstruct_state.py [--db PATH] [--match-id ID] [--overwrite]
 ```
 
-- `--db` — DuckDB database file. Default `./cs2_matches.duckdb` (run from
-  the repo root, same convention as `DuckDBLoader`).
+- `--db` — DuckDB database file. Defaults to `DuckDBLoader/cs2_matches.duckdb`
+  next to this script's own repo location — works from any working
+  directory, no need to `cd` anywhere first.
 - `--match-id` — reconstruct just one match. Default: every match in
   `matches` that doesn't have `match_states` rows yet.
 - `--overwrite` — redo matches that already have `match_states` rows.

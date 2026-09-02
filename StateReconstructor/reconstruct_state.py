@@ -31,6 +31,7 @@ from pathlib import Path
 import duckdb
 
 SCHEMA_PATH = Path(__file__).parent.parent / "DuckDBLoader" / "schema.sql"
+DB_DEFAULT = Path(__file__).parent.parent / "DuckDBLoader" / "cs2_matches.duckdb"
 
 
 def matches_to_process(con: duckdb.DuckDBPyConnection, match_id: str | None, overwrite: bool) -> list[str]:
@@ -97,7 +98,7 @@ def reconstruct_match(con: duckdb.DuckDBPyConnection, match_id: str):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
-    parser.add_argument("--db", type=Path, default=Path("cs2_matches.duckdb"), help="DuckDB database file (default: ./cs2_matches.duckdb)")
+    parser.add_argument("--db", type=Path, default=DB_DEFAULT, help=f"DuckDB database file (default: {DB_DEFAULT})")
     parser.add_argument("--match-id", help="Reconstruct only this match (default: every match in the database)")
     parser.add_argument("--overwrite", action="store_true", help="Reconstruct matches that already have match_states rows")
     args = parser.parse_args()
